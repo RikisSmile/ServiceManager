@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Process Management Dashboard</title>
+    
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: #333;
+            min-height: 100vh;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+        }
+        
+        .container {
+            background-color: #ffffff;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+            max-width: 1000px;
+            width: 100%;
+            margin-top: 20px;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        
+        h1 {
+            color: #4a5568;
+            font-size: 2.5em;
+            margin-bottom: 10px;
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        
+        .subtitle {
+            color: #718096;
+            font-size: 1.1em;
+        }
+        
+        .config-section {
+            background-color: #f7fafc;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 25px;
+            border-left: 4px solid #667eea;
+        }
+        
+        .config-row {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+        
+        .config-row:last-child {
+            margin-bottom: 0;
+        }
+        
+        label {
+            font-weight: 600;
+            color: #4a5568;
+            min-width: 120px;
+        }
+        
+        input[type="text"], input[type="number"] {
+            padding: 8px 12px;
+            border: 2px solid #e2e8f0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.2s;
+            flex: 1;
+            min-width: 200px;
+        }
+        
+        input[type="text"]:focus, input[type="number"]:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 600;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        .btn-primary {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+        
+        .btn-success {
+            background: linear-gradient(45deg, #48bb78, #38a169);
+            color: white;
+        }
+        
+        .btn-success:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(72, 187, 120, 0.4);
+        }
+        
+        .btn-danger {
+            background: linear-gradient(45deg, #f56565, #e53e3e);
+            color: white;
+        }
+        
+        .btn-danger:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(245, 101, 101, 0.4);
+        }
+        
+        .btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+        
+        .status-indicator {
+            display: inline-block;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+        
+        .status-running {
+            background-color: #48bb78;
+            box-shadow: 0 0 10px rgba(72, 187, 120, 0.5);
+        }
+        
+        .status-dead {
+            background-color: #f56565;
+            box-shadow: 0 0 10px rgba(245, 101, 101, 0.5);
+        }
+        
+        .status-unknown {
+            background-color: #ed8936;
+            box-shadow: 0 0 10px rgba(237, 137, 54, 0.5);
+        }
+        
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            background-color: white;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        th, td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid #e2e8f0;
+        }
+        
+        th {
+            background: linear-gradient(45deg, #667eea, #764ba2);
+            color: white;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        tr:hover {
+            background-color: #f7fafc;
+        }
+        
+        tr:last-child td {
+            border-bottom: none;
+        }
+        
+        .actions {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 40px;
+            color: #718096;
+            font-size: 1.1em;
+        }
+        
+        .error {
+            background-color: #fed7d7;
+            color: #c53030;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #f56565;
+        }
+        
+        .success {
+            background-color: #c6f6d5;
+            color: #2d7d32;
+            padding: 15px;
+            border-radius: 8px;
+            margin: 20px 0;
+            border-left: 4px solid #48bb78;
+        }
+        
+        .last-updated {
+            text-align: right;
+            font-size: 0.9em;
+            color: #718096;
+            margin-top: 15px;
+            font-style: italic;
+        }
+        
+        .connection-status {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border-radius: 20px;
+            font-size: 0.9em;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+        
+        .connection-online {
+            background-color: #c6f6d5;
+            color: #2d7d32;
+        }
+        
+        .connection-offline {
+            background-color: #fed7d7;
+            color: #c53030;
+        }
+        
+        @media (max-width: 768px) {
+            .container {
+                padding: 20px;
+                margin: 10px;
+            }
+            
+            h1 {
+                font-size: 2em;
+            }
+            
+            .config-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+            
+            label {
+                min-width: auto;
+            }
+            
+            .actions {
+                justify-content: center;
+            }
+            
+            table {
+                font-size: 0.9em;
+            }
+            
+            th, td {
+                padding: 10px 8px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🚀 Process Management Dashboard</h1>
+            <p class="subtitle">Monitor and control your system processes</p>
+        </div>
+        
+        <div class="config-section">
+            <h3 style="margin-bottom: 15px; color: #4a5568;">🔧 Server Configuration</h3>
+            <div class="config-row">
+                <label for="server-host">Server Host:</label>
+                <input type="text" id="server-host" value="localhost" placeholder="localhost or IP address">
+            </div>
+            <div class="config-row">
+                <label for="server-port">Server Port:</label>
+                <input type="number" id="server-port" value="6755" min="1" max="65535">
+            </div>
+            <div class="config-row">
+                <label for="auto-refresh">Auto Refresh:</label>
+                <input type="number" id="auto-refresh" value="30" min="5" max="300" title="Seconds">
+                <span style="color: #718096;">seconds</span>
+            </div>
+            <div class="config-row">
+                <button id="connect-btn" class="btn btn-primary">🔗 Connect</button>
+                <button id="refresh-btn" class="btn btn-success" disabled>🔄 Refresh</button>
+                <div id="connection-status" class="connection-status connection-offline">
+                    <span class="status-indicator status-dead"></span>
+                    Disconnected
+                </div>
+            </div>
+        </div>
+        
+        <div id="data-container">
+            <div class="loading">
+                <p>Configure server connection above and click "Connect" to start monitoring processes.</p>
+            </div>
+        </div>
+        
+        <p class="last-updated">Last Updated: <span id="timestamp">Never</span></p>
+    </div>
+
+    <script>
+        // Global variables
+        let serverConfig = {
+            host: 'localhost',
+            port: 6755,
+            autoRefresh: 30
+        };
+        let isConnected = false;
+        let autoRefreshInterval = null;
+        
+        // DOM elements
+        const serverHostInput = document.getElementById('server-host');
+        const serverPortInput = document.getElementById('server-port');
+        const autoRefreshInput = document.getElementById('auto-refresh');
+        const connectBtn = document.getElementById('connect-btn');
+        const refreshBtn = document.getElementById('refresh-btn');
+        const connectionStatus = document.getElementById('connection-status');
+        const dataContainer = document.getElementById('data-container');
+        const timestampSpan = document.getElementById('timestamp');
+        
+        // Utility functions
+        function getApiUrl(endpoint) {
+            return `http://${serverConfig.host}:${serverConfig.port}${endpoint}`;
+        }
+        
+        function updateConnectionStatus(connected) {
+            isConnected = connected;
+            const statusIndicator = connectionStatus.querySelector('.status-indicator');
+            
+            if (connected) {
+                connectionStatus.className = 'connection-status connection-online';
+                connectionStatus.innerHTML = '<span class="status-indicator status-running"></span>Connected';
+                connectBtn.textContent = '🔌 Disconnect';
+                refreshBtn.disabled = false;
+            } else {
+                connectionStatus.className = 'connection-status connection-offline';
+                connectionStatus.innerHTML = '<span class="status-indicator status-dead"></span>Disconnected';
+                connectBtn.textContent = '🔗 Connect';
+                refreshBtn.disabled = true;
+                
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                    autoRefreshInterval = null;
+                }
+            }
+        }
+        
+        function showMessage(message, type = 'error') {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = type;
+            messageDiv.textContent = message;
+            
+            // Remove existing messages
+            const existingMessages = dataContainer.querySelectorAll('.error, .success');
+            existingMessages.forEach(msg => msg.remove());
+            
+            dataContainer.insertBefore(messageDiv, dataContainer.firstChild);
+            
+            // Auto-remove success messages
+            if (type === 'success') {
+                setTimeout(() => messageDiv.remove(), 3000);
+            }
+        }
+        
+        // API functions
+        async function testConnection() {
+            try {
+                const response = await fetch(getApiUrl('/health'), {
+                    method: 'GET',
+                    timeout: 5000
+                });
+                return response.ok;
+            } catch (error) {
+                console.error('Connection test failed:', error);
+                return false;
+            }
+        }
+        
+        async function fetchProcessData() {
+            if (!isConnected) return;
+            
+            try {
+                const response = await fetch(getApiUrl('/process/list'));
+                
+                if (!response.ok) {
+                    throw new Error(`Server returned HTTP ${response.status}`);
+                }
+                
+                const processes = await response.json();
+                renderProcessTable(processes);
+                timestampSpan.textContent = new Date().toLocaleTimeString();
+                
+                // Remove any error messages
+                const errorMessages = dataContainer.querySelectorAll('.error');
+                errorMessages.forEach(msg => msg.remove());
+                
+            } catch (error) {
+                console.error('Fetch error:', error);
+                showMessage(`Failed to fetch process data: ${error.message}`);
+                updateConnectionStatus(false);
+            }
+        }
+        
+        async function controlProcess(action, processId) {
+            if (!isConnected) return;
+            
+            try {
+                const formData = new URLSearchParams();
+                formData.append('fn', action);
+                formData.append('id', processId.toString());
+                
+                const response = await fetch(getApiUrl('/process/control'), {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded'
+                    },
+                    body: formData.toString()
+                });
+                
+                const result = await response.text();
+                
+                if (response.ok) {
+                    showMessage(`${action.toUpperCase()} command successful: ${result}`, 'success');
+                    // Refresh data after successful command
+                    setTimeout(fetchProcessData, 1000);
+                } else {
+                    throw new Error(result);
+                }
+                
+            } catch (error) {
+                console.error('Control command error:', error);
+                showMessage(`Failed to execute ${action} command: ${error.message}`);
+            }
+        }
+        
+        // Rendering functions
+        function renderProcessTable(processes) {
+            if (!Array.isArray(processes) || processes.length === 0) {
+                dataContainer.innerHTML = '<div class="loading"><p>No processes configured on the server.</p></div>';
+                return;
+            }
+            
+            let tableHTML = `
+                <table>
+                    <thead>
+                        <tr>
+                            <th>ID</th>
+                            <th>Description</th>
+                            <th>Status</th>
+                            <th>Mode</th>
+                            <th>PID</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+            `;
+            
+            processes.forEach((process) => {
+                const statusClass = process.status === 'RUNNING' ? 'status-running' : 
+                                  process.status === 'DEAD' ? 'status-dead' : 'status-unknown';
+                
+                const pidDisplay = (process.pid && process.pid > 0) ? process.pid : '-';
+                const modeDisplay = process.mode === 'C' ? 'Command' : 
+                                  process.mode === 'D' ? 'Docker' : process.mode || 'Unknown';
+                
+                const isRunning = process.status === 'RUNNING';
+                
+                tableHTML += `
+                    <tr>
+                        <td>${process.id}</td>
+                        <td>${escapeHtml(process.desc || 'N/A')}</td>
+                        <td>
+                            <span class="status-indicator ${statusClass}"></span>
+                            ${process.status || 'UNKNOWN'}
+                        </td>
+                        <td>${modeDisplay}</td>
+                        <td>${pidDisplay}</td>
+                        <td class="actions">
+                            <button onclick="controlProcess('start', ${process.id})" 
+                                    class="btn btn-success" 
+                                    ${isRunning ? 'disabled' : ''}>
+                                ▶️ Start
+                            </button>
+                            <button onclick="controlProcess('stop', ${process.id})" 
+                                    class="btn btn-danger" 
+                                    ${!isRunning ? 'disabled' : ''}>
+                                ⏹️ Stop
+                            </button>
+                            <button onclick="controlProcess('kill', ${process.id})" 
+                                    class="btn btn-danger" 
+                                    ${!isRunning ? 'disabled' : ''}>
+                                ❌ Kill
+                            </button>
+                        </td>
+                    </tr>
+                `;
+            });
+            
+            tableHTML += '</tbody></table>';
+            dataContainer.innerHTML = tableHTML;
+        }
+        
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Event handlers
+        connectBtn.addEventListener('click', async () => {
+            if (isConnected) {
+                // Disconnect
+                updateConnectionStatus(false);
+                dataContainer.innerHTML = '<div class="loading"><p>Disconnected from server.</p></div>';
+                timestampSpan.textContent = 'Disconnected';
+                return;
+            }
+            
+            // Update configuration
+            serverConfig.host = serverHostInput.value.trim() || 'localhost';
+            serverConfig.port = parseInt(serverPortInput.value) || 6755;
+            serverConfig.autoRefresh = parseInt(autoRefreshInput.value) || 30;
+            
+            // Test connection
+            connectBtn.disabled = true;
+            connectBtn.textContent = '🔄 Connecting...';
+            
+            const connected = await testConnection();
+            
+            if (connected) {
+                updateConnectionStatus(true);
+                await fetchProcessData();
+                
+                // Setup auto-refresh
+                if (autoRefreshInterval) {
+                    clearInterval(autoRefreshInterval);
+                }
+                autoRefreshInterval = setInterval(fetchProcessData, serverConfig.autoRefresh * 1000);
+                
+                showMessage('Successfully connected to server!', 'success');
+            } else {
+                updateConnectionStatus(false);
+                showMessage(`Failed to connect to ${serverConfig.host}:${serverConfig.port}. Please check the server address and ensure the server is running.`);
+            }
+            
+            connectBtn.disabled = false;
+        });
+        
+        refreshBtn.addEventListener('click', fetchProcessData);
+        
+        // Auto-save configuration
+        [serverHostInput, serverPortInput, autoRefreshInput].forEach(input => {
+            input.addEventListener('change', () => {
+                localStorage.setItem('processManager_config', JSON.stringify({
+                    host: serverHostInput.value,
+                    port: serverPortInput.value,
+                    autoRefresh: autoRefreshInput.value
+                }));
+            });
+        });
+        
+        // Load saved configuration
+        try {
+            const savedConfig = localStorage.getItem('processManager_config');
+            if (savedConfig) {
+                const config = JSON.parse(savedConfig);
+                serverHostInput.value = config.host || 'localhost';
+                serverPortInput.value = config.port || '6755';
+                autoRefreshInput.value = config.autoRefresh || '30';
+            }
+        } catch (error) {
+            console.warn('Failed to load saved configuration:', error);
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', (event) => {
+            if (event.ctrlKey || event.metaKey) {
+                switch (event.key) {
+                    case 'r':
+                        event.preventDefault();
+                        if (isConnected) fetchProcessData();
+                        break;
+                    case 'Enter':
+                        event.preventDefault();
+                        connectBtn.click();
+                        break;
+                }
+            }
+        });
+        
+        // Initialize
+        console.log('Process Management Dashboard v1.0 loaded');
+        console.log('Keyboard shortcuts: Ctrl+R (refresh), Ctrl+Enter (connect/disconnect)');
+    </script>
+</body>
+</html>
